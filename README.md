@@ -1,4 +1,4 @@
-# Yuga Yatra Test Frontend
+# My-Test Frontend
 
 This is the frontend for the Yuga Yatra Test Platform.
 
