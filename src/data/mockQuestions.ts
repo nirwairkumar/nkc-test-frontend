@@ -151,5 +151,107 @@ export const mockQuestions: MockQuestion[] = [
         question: 'Who is the current UN Secretary General?',
         options: { A: 'Ban Ki-moon', B: 'António Guterres', C: 'Kofi Annan', D: 'Boutros-Ghali' },
         correctAnswer: 'B'
+    },
+    // Test 110: English Literature
+    {
+        id: 18,
+        testId: 'test-110',
+        type: 'single',
+        question: 'Who wrote "Romeo and Juliet"?',
+        options: { A: 'Charles Dickens', B: 'William Shakespeare', C: 'Jane Austen', D: 'Mark Twain' },
+        correctAnswer: 'B'
+    },
+    {
+        id: 19,
+        testId: 'test-110',
+        type: 'single',
+        question: 'In "Macbeth", who kills King Duncan?',
+        options: { A: 'Macduff', B: 'Banquo', C: 'Macbeth', D: 'Malcolm' },
+        correctAnswer: 'C'
+    },
+    // Test 111: Organic Chemistry
+    {
+        id: 20,
+        testId: 'test-111',
+        type: 'single',
+        question: 'General formula of Alkanes is:',
+        options: { A: 'CnH2n', B: 'CnH2n-2', C: 'CnH2n+2', D: 'CnHn' },
+        correctAnswer: 'C'
+    },
+    {
+        id: 21,
+        testId: 'test-111',
+        type: 'single',
+        question: 'Which of the following is the simplest Alkyne?',
+        options: { A: 'Ethene', B: 'Ethyne', C: 'Methane', D: 'Propyne' },
+        correctAnswer: 'B'
+    },
+    // Test 112: Logical Reasoning
+    {
+        id: 22,
+        testId: 'test-112',
+        type: 'single',
+        question: 'Find the next number in series: 2, 4, 8, 16, ...',
+        options: { A: '24', B: '32', C: '20', D: '18' },
+        correctAnswer: 'B'
+    },
+    {
+        id: 23,
+        testId: 'test-112',
+        type: 'single',
+        question: 'If CAT is coded as 3120, how is DOG coded?',
+        options: { A: '4157', B: '4158', C: '3127', D: '4120' },
+        correctAnswer: 'A' // D=4, O=15, G=7
+    },
+    // Test 113: Geography
+    {
+        id: 24,
+        testId: 'test-113',
+        type: 'single',
+        question: 'What is the capital of Australia?',
+        options: { A: 'Sydney', B: 'Melbourne', C: 'Canberra', D: 'Perth' },
+        correctAnswer: 'C'
+    },
+    {
+        id: 25,
+        testId: 'test-113',
+        type: 'single',
+        question: 'Which is the longest river in the world?',
+        options: { A: 'Amazon', B: 'Nile', C: 'Yangtze', D: 'Mississippi' },
+        correctAnswer: 'B'
+    },
+    // Test 114: Art History
+    {
+        id: 26,
+        testId: 'test-114',
+        type: 'single',
+        question: 'Who painted the "Mona Lisa"?',
+        options: { A: 'Michelangelo', B: 'Leonardo da Vinci', C: 'Raphael', D: 'Donatello' },
+        correctAnswer: 'B'
+    },
+    {
+        id: 27,
+        testId: 'test-114',
+        type: 'single',
+        question: 'The "Starry Night" is a work by:',
+        options: { A: 'Pablo Picasso', B: 'Vincent van Gogh', C: 'Claude Monet', D: 'Salvador Dali' },
+        correctAnswer: 'B'
+    },
+    // Test 115: Sports
+    {
+        id: 28,
+        testId: 'test-115',
+        type: 'single',
+        question: 'How many players are there in a standard Cricket team?',
+        options: { A: '10', B: '11', C: '12', D: '9' },
+        correctAnswer: 'B'
+    },
+    {
+        id: 29,
+        testId: 'test-115',
+        type: 'single',
+        question: 'Which country won the FIFA World Cup 2022?',
+        options: { A: 'Brazil', B: 'France', C: 'Argentina', D: 'Germany' },
+        correctAnswer: 'C'
     }
 ];
