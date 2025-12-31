@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Question, createTest, fetchTestById, updateTest } from '@/integrations/api';
 // import { Question, createTest, fetchTestById, updateTest } from '@/lib/testsApi'; // REMOVED
 import { toast } from 'sonner';
-import { Plus, Trash2, Save, ArrowLeft, Loader2, Upload, CheckSquare, Square, Languages, X, Check, ChevronsUpDown, GripVertical, Cloud, CloudOff, FileText, Eraser } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Loader2, Upload, CheckSquare, Square, Languages, X, Check, ChevronsUpDown, GripVertical, Cloud, CloudOff, FileText, Eraser, Info } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { IMEInput } from '@/components/ui/IMEInput';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -760,6 +760,18 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Format Support Note */}
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md text-sm flex items-start gap-3">
+                    <Info className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
+                    <div>
+                        <p className="font-semibold mb-1">Supported Formats</p>
+                        <p className="text-blue-700/80">
+                            You can use <strong>LaTeX</strong> for mathematical equations (e.g., <code className="bg-blue-100 px-1 rounded">\( E = mc^2 \)</code>).
+                            Markdown formatting is also supported for bold, italics, and lists to help you create the best test experience.
+                        </p>
+                    </div>
+                </div>
 
                 {/* Question List */}
                 <div className="space-y-4">
