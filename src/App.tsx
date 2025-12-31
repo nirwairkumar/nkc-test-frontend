@@ -9,6 +9,7 @@ import PrivateRoute from "@/components/ui/PrivateRoute";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 
+import { Analytics } from "@vercel/analytics/react";
 import AITestImporter from "./pages/AITestImporter";
 
 // Lazy Load Pages
@@ -22,6 +23,7 @@ const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const AdminMigration = lazy(() => import("./pages/AdminMigration"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const ManageTests = lazy(() => import("./pages/ManageTests"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const UserTestManager = lazy(() => import("./pages/UserTestManager"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -49,6 +51,7 @@ const App = () => (
                 <Route element={<Layout />}>
                   <Route path="/" element={<TestList />} />
                   <Route path="/login" element={<AuthForm />} />
+                  <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
                   <Route path="/admin-migration" element={<AdminMigration />} />
                   <Route path="/admin-login" element={<AdminLogin />} />

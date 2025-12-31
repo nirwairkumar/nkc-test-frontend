@@ -15,8 +15,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from 'sonner';
-import { uploadAvatar, getPublicUrl, updateUser as apiUpdateUser } from '@/integrations/api'; // user alias to avoid conflict if any
-// import supabase from '@/lib/supabaseClient'; // REMOVED
+import supabase from '@/lib/supabaseClient';
 import { Loader2, User, Save, Upload } from 'lucide-react';
 
 const ProfilePage = () => {
@@ -82,15 +81,17 @@ const ProfilePage = () => {
             const fileName = `${user!.id}-${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
 
-            // Upload to Supabase Storage -> MOCK
-            const { data: uploadData, error: uploadError } = await uploadAvatar(file);
+            // Upload to Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
 
             if (uploadError) {
                 throw uploadError;
             }
 
-            // Get Public URL -> MOCK
-            const { data } = getPublicUrl(uploadData?.path || filePath);
+            // Get Public URL
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
             const publicUrl = data.publicUrl;
 
             setAvatarUrl(publicUrl);
@@ -110,7 +111,7 @@ const ProfilePage = () => {
         setLoading(true);
 
         try {
-            const { error } = await apiUpdateUser({
+            const { error } = await supabase.auth.updateUser({
                 data: {
                     full_name: fullName,
                     bio: bio,
@@ -121,13 +122,39 @@ const ProfilePage = () => {
 
             if (error) throw error;
 
-            // Mock syncing with other tables (profiles, tests) - In real app, triggers handle this or separate calls
-            // For mock, we just assume success or maybe update local state if we had a global store besides auth context
-            // But AuthContext likely updates on session change/refresh.
+            // Sync with public profiles table
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    full_name: fullName,
+                    bio: bio,
+                    avatar_url: avatarUrl,
+                    designation: designation,
+                    email: user.email,
+                    updated_at: new Date().toISOString()
+                });
 
-            // Simulate profile update success
-            toast.success('Profile and Tests updated successfully!');
+            if (profileError) {
+                console.error("Error syncing public profile:", profileError);
+                toast.error(`Public Profile Sync Failed: ${profileError.message}`);
+            } else {
+                // Sync with tests table (Update creator_name and creator_avatar for all tests by this user)
+                const { error: testsError } = await supabase
+                    .from('tests')
+                    .update({
+                        creator_name: fullName,
+                        creator_avatar: avatarUrl
+                    })
+                    .eq('created_by', user.id);
 
+                if (testsError) {
+                    console.error("Error syncing tests:", testsError);
+                    toast.warning("Profile updated, but failed to sync with your tests.");
+                } else {
+                    toast.success('Profile and Tests updated successfully!');
+                }
+            }
         } catch (error: any) {
             console.error('Error updating profile:', error);
             toast.error(error.message || 'Failed to update profile');
