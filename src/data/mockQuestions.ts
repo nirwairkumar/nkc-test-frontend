@@ -7,6 +7,7 @@ export interface MockQuestion {
     image?: string;
     passageContent?: string;
     options?: { [key: string]: string };
+    optionImages?: { [key: string]: string };
     correctAnswer: string | string[];
 }
 

@@ -344,9 +344,23 @@ export default function TestPage() {
       if (q.type === 'numerical') {
         // Numerical Check
         const numAns = parseFloat(userAns as string);
-        const range = q.correctAnswer as { min: number, max: number };
-        if (!isNaN(numAns) && range && typeof range === 'object' && numAns >= range.min && numAns <= range.max) {
-          isCorrect = true;
+        const correct = q.correctAnswer as any; // Cast to any to allow object check
+
+        // Check if correct is a Range object { min, max }
+        if (typeof correct === 'object' && correct !== null && 'min' in correct && 'max' in correct) {
+          const range = correct as { min: number, max: number };
+          if (!isNaN(numAns) && numAns >= range.min && numAns <= range.max) {
+            isCorrect = true;
+          }
+        } else {
+          // Assume exact value (string or number)
+          const correctVal = parseFloat(correct as string);
+          if (!isNaN(numAns) && !isNaN(correctVal)) {
+            // Float comparison with tolerance
+            if (Math.abs(numAns - correctVal) < 0.0001) isCorrect = true;
+          } else if (String(userAns) === String(correct)) {
+            isCorrect = true;
+          }
         }
       } else if (q.type === 'multiple') {
         // Multiple Choice Check (Exact Match)
