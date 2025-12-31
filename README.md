@@ -10,3 +10,11 @@ This is the frontend for the Yuga Yatra Test Platform.
 - Mock Tests (JEE, NEET, etc.)
 - Role-based Auth (Admin, Teacher, Student)
 - Test Creation & History
+
+## Demo Login Credentials (Mock)
+
+| Role            | Email                  | Password |
+|-----------------|------------------------|----------|
+| Admin (Founder) | admin@yugayatra.com    | (any)    |
+| Teacher         | teacher@yugayatra.com  | (any)    |
+| Student         | student@yugayatra.com  | (any)    |
