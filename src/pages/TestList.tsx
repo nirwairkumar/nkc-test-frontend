@@ -6,7 +6,7 @@ import { fetchTests, fetchSections, fetchTestSections, toggleTestLike, getTestLi
 // import { fetchTests, Test, toggleTestLike, getTestLikeCount, getTestLikeStatus } from '@/lib/testsApi'; // REMOVED
 import type { MockTest as Test } from '@/data/mockTests'; // Import mock types
 
-import { BookOpen, Clock, ArrowRight, History, Loader2, Heart, Search, Share2, ChevronRight, ChevronLeft, RefreshCw } from 'lucide-react';
+import { BookOpen, Clock, ArrowRight, History, Loader2, Heart, Search, Share2, ChevronRight, ChevronLeft, RefreshCw, Settings, Edit } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 // import supabase from '@/lib/supabaseClient'; // REMOVED
 import YouTubeGenerator from '@/components/YouTubeGenerator';
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 
 import TestLikeButton from '@/components/TestLikeButton';
+import TestSettingsPanel from '@/components/TestSettingsPanel';
 
 function TestCardSectionList({ sectionIds, allSections }: { sectionIds: string[] | undefined, allSections: any[] }) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,7 @@ export default function TestList() {
     const [testSectionMap, setTestSectionMap] = useState<Record<string, string[]>>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [userTests, setUserTests] = useState<Test[]>([]);
+    const [configuringTest, setConfiguringTest] = useState<any>(null);
 
     // Dynamic Placeholder State
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -250,7 +252,7 @@ export default function TestList() {
                                 <div
                                     key={test.id}
                                     className={`relative h-full ${index === 1 ? 'hidden md:block' :
-                                            index === 2 ? 'hidden lg:block' : 'block'
+                                        index === 2 ? 'hidden lg:block' : 'block'
                                         }`}
                                 >
                                     {/* Blue Dot for the newest item (only if created within last 5 minutes) */}
@@ -317,12 +319,42 @@ export default function TestList() {
                                                 <TestCardSectionList sectionIds={testSectionMap[test.id]} allSections={sections} />
                                             </div>
                                         </CardContent>
-                                        <CardFooter className="p-3 pt-0 flex justify-between gap-2">
-                                            <TestLikeButton testId={test.id} userId={user?.id} />
-                                            <Button size="sm" className="flex-1 h-8 text-sm" onClick={() => navigate(`/test-intro/${test.id}`)}>
-                                                Open
-                                                <ArrowRight className="ml-2 h-3 w-3" />
-                                            </Button>
+                                        <CardFooter className="p-3 pt-0 flex justify-between gap-2 items-center">
+                                            <div className="flex-none">
+                                                <TestLikeButton testId={test.id} userId={user?.id} />
+                                            </div>
+
+                                            {/* Buttons for Creator: Manage, Edit, Open */}
+                                            <div className="flex-1 flex gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 text-muted-foreground hover:text-foreground px-2"
+                                                    onClick={() => setConfiguringTest(test)}
+                                                    title="Manage Test"
+                                                >
+                                                    <Settings className="h-4 w-4 mr-1.5" />
+                                                    <span className="hidden sm:inline">Manage</span>
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 px-2"
+                                                    onClick={() => navigate(`/edit-test/${test.id}`)}
+                                                    title="Edit Test"
+                                                >
+                                                    <Edit className="h-4 w-4 mr-1.5" />
+                                                    <span className="hidden sm:inline">Edit</span>
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    className="flex-1 h-8 px-3"
+                                                    onClick={() => navigate(`/test-intro/${test.id}`)}
+                                                >
+                                                    Open
+                                                    <ArrowRight className="ml-2 h-3 w-3" />
+                                                </Button>
+                                            </div>
                                         </CardFooter>
                                     </Card>
                                 </div>
@@ -436,12 +468,50 @@ export default function TestList() {
                                 <TestCardSectionList sectionIds={testSectionMap[test.id]} allSections={sections} />
                             </div>
                         </CardContent>
-                        <CardFooter className="p-3 pt-0 flex justify-between gap-2">
-                            <TestLikeButton testId={test.id} userId={user?.id} />
-                            <Button size="sm" className="flex-1 h-8 text-sm" onClick={() => navigate(`/test-intro/${test.id}`)}>
-                                Open
-                                <ArrowRight className="ml-2 h-3 w-3" />
-                            </Button>
+                        <CardFooter className="p-3 pt-0 flex justify-between items-center gap-2">
+                            <div className="flex-none">
+                                <TestLikeButton testId={test.id} userId={user?.id} />
+                            </div>
+
+                            {user?.id === test.created_by ? (
+                                <div className="flex-1 flex gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 text-muted-foreground hover:text-foreground px-2"
+                                        onClick={() => setConfiguringTest(test)}
+                                        title="Manage Test"
+                                    >
+                                        <Settings className="h-4 w-4 mr-1.5" />
+                                        <span className="hidden sm:inline">Manage</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2"
+                                        onClick={() => navigate(`/edit-test/${test.id}`)}
+                                        title="Edit Test"
+                                    >
+                                        <Edit className="h-4 w-4 mr-1.5" />
+                                        <span className="hidden sm:inline">Edit</span>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 h-8 px-3"
+                                        onClick={() => navigate(`/test-intro/${test.id}`)}
+                                    >
+                                        Open
+                                        <ArrowRight className="ml-2 h-3 w-3" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex-1">
+                                    <Button size="sm" className="w-full h-8 text-sm" onClick={() => navigate(`/test-intro/${test.id}`)}>
+                                        Open
+                                        <ArrowRight className="ml-2 h-3 w-3" />
+                                    </Button>
+                                </div>
+                            )}
                         </CardFooter>
                     </Card>
                 ))}
@@ -453,6 +523,17 @@ export default function TestList() {
                         {searchQuery ? "No results found." : "No tests available."}
                     </p>
                 </div>
+            )}
+            {configuringTest && (
+                <TestSettingsPanel
+                    test={configuringTest}
+                    onClose={() => setConfiguringTest(null)}
+                    onUpdate={loadData}
+                    onViewResults={() => {
+                        setConfiguringTest(null);
+                        navigate('/my-tests');
+                    }}
+                />
             )}
         </div>
     );
