@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Question, createTest, fetchTestById, updateTest } from '@/integrations/api';
-// import { Question, createTest, fetchTestById, updateTest } from '@/lib/testsApi'; // REMOVED
+import { Question, createTest, fetchTestById, updateTest } from '@/lib/testsApi';
 import { toast } from 'sonner';
 import { Plus, Trash2, Save, ArrowLeft, Loader2, Upload, CheckSquare, Square, Languages, X, Check, ChevronsUpDown, GripVertical, Cloud, CloudOff, FileText, Eraser, Info } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -38,8 +37,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { fetchSections } from '@/integrations/api';
-// import { fetchSections } from '@/lib/sectionsApi'; // REMOVED
+import { fetchSections } from '@/lib/sectionsApi';
+import { TestUploadFormatGuide } from '@/components/TestUploadFormatGuide';
 
 interface QuestionState extends Omit<Question, 'correctAnswer' | 'options'> {
     options: { [key: string]: string };
@@ -247,7 +246,7 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
     };
 
     const fetchAndSetSections = async (tid: string) => {
-        const { fetchTestSections } = await import('@/integrations/api');
+        const { fetchTestSections } = await import('@/lib/sectionsApi');
         const { data: sectionData } = await fetchTestSections(tid);
         if (sectionData) {
             setSelectedSections(sectionData);
@@ -383,12 +382,34 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
         reader.readAsDataURL(file);
     };
 
+    const handleJsonImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const text = event.target?.result as string;
+                const json = JSON.parse(text);
+                if (!json.title || !json.questions) throw new Error("Invalid JSON format");
+
+                // Use existing populate logic
+                populateData(json);
+                toast.success("Test imported successfully");
+            } catch (err: any) {
+                console.error(err);
+                toast.error("Failed to import: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
+
     const performSave = async (isAuto: boolean) => {
         const sanitizedQuestions = questions.map(q => ({
             ...q,
             image: q.image ? q.image.trim() : q.image,
             optionImages: q.optionImages ? Object.fromEntries(
-                Object.entries(q.optionImages).map(([k, v]) => [k, v ? (v as string).trim() : v])
+                Object.entries(q.optionImages).map(([k, v]) => [k, v ? v.trim() : v])
             ) : undefined
         }));
 
@@ -414,7 +435,7 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
             // Only update sections if changed? For now update always to be safe
             // Ideally check dirty state, but lightweight enough
             if (selectedSections.length > 0) {
-                const { assignSectionsToTest } = await import('@/integrations/api');
+                const { assignSectionsToTest } = await import('@/lib/sectionsApi');
                 await assignSectionsToTest(testId, selectedSections);
             }
         } else {
@@ -424,7 +445,7 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
             // For now, adhere to "only editing existing test" or "manual save first".
             if (isAuto) throw new Error("Auto-save not supported for new unsaved tests yet");
 
-            const { getNextTestId } = await import('@/integrations/api');
+            const { getNextTestId } = await import('@/lib/testsApi');
             const customId = await getNextTestId('M');
             const newTest = {
                 ...testDataPayload,
@@ -437,7 +458,7 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
             const { data, error } = await createTest(newTest);
             if (error) throw error;
             if (selectedSections.length > 0) {
-                const { assignSectionsToTest } = await import('@/integrations/api');
+                const { assignSectionsToTest } = await import('@/lib/sectionsApi');
                 await assignSectionsToTest(data.id, selectedSections);
             }
         }
@@ -606,12 +627,16 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {!isEditMode && (
-                        <Button variant="outline" size="sm" onClick={handleClear} className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200">
-                            <Eraser className="w-4 h-4 mr-2" />
-                            Clear
-                        </Button>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                        <label className="cursor-pointer">
+                            <input type="file" accept=".json" className="hidden" onChange={handleJsonImport} />
+                            <div className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 py-2 cursor-pointer">
+                                <Upload className="w-4 h-4 mr-2" />
+                                Import JSON
+                            </div>
+                        </label>
+                        <TestUploadFormatGuide />
+                    </div>
 
                     {isEditMode && (
                         <div className="flex items-center gap-2 text-sm font-medium animate-in fade-in slide-in-from-right-4 duration-300">
@@ -669,9 +694,22 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                                 </div>
                             </label>
                         </div>
-                        <div className="w-full max-w-lg">
-                            <Input value={institutionName} onChange={(e) => setInstitutionName(e.target.value)} placeholder="Add Your Institution Name" className="text-xl font-bold border-none shadow-none focus-visible:ring-0 placeholder:text-slate-300 px-0" />
-                            <div className="h-[1px] bg-gradient-to-r from-slate-200 to-transparent w-full" />
+                        <div className="w-full max-w-lg flex items-start gap-4">
+                            <div className="flex-1 mr-2">
+                                <Input value={institutionName} onChange={(e) => setInstitutionName(e.target.value)} placeholder="Add Your Institution Name" className="text-xl font-bold border-none shadow-none focus-visible:ring-0 placeholder:text-slate-300 px-0" />
+                                <div className="h-[1px] bg-gradient-to-r from-slate-200 to-transparent w-full" />
+                            </div>
+                            <div className="flex flex-col justify-start h-full pt-1">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleClear}
+                                    className="text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                    title="Clear All Data"
+                                >
+                                    <Eraser className="w-5 h-5" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
