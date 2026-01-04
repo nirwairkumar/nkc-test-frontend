@@ -100,9 +100,9 @@ export default function AdminLogin() {
             <div className="w-[350px] mb-4">
                 <BackButton />
             </div>
-            <Card className="w-[350px] border-red-200 shadow-red-100">
+            <Card className="w-[350px] border-blue-200 shadow-blue-100">
                 <CardHeader>
-                    <CardTitle className="text-red-900">Admin Login</CardTitle>
+                    <CardTitle className="text-blue-900">Admin Login</CardTitle>
                     <CardDescription>
                         Restricted Access. Admin credentials required.
                     </CardDescription>
@@ -138,7 +138,7 @@ export default function AdminLogin() {
                                 )}
                             />
 
-                            <Button type="submit" className="w-full bg-red-900 hover:bg-red-800" disabled={isLoading}>
+                            <Button type="submit" className="w-full bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold" disabled={isLoading}>
                                 {isLoading ? 'Authenticating...' : 'Access Admin Panel'}
                             </Button>
                         </form>

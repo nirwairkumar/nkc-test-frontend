@@ -269,7 +269,7 @@ export default function AuthForm() {
                                 />
                             )}
 
-                            <Button type="submit" className="w-full" disabled={isLoading}>
+                            <Button type="submit" className="w-full bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold" disabled={isLoading}>
                                 {isLoading ? 'Loading...' :
                                     view === 'login' ? 'Sign In' :
                                         view === 'signup' ? 'Sign Up' : 'Send Reset Link'}

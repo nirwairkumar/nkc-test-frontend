@@ -12,8 +12,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, User, History, Shield, Home, HelpCircle, Menu, Plus } from 'lucide-react';
-
+import {
+    LogOut,
+    User,
+    History,
+    Shield,
+    Home,
+    HelpCircle,
+    Menu,
+    Plus
+} from 'lucide-react';
 
 export default function Navbar() {
     const { user, isAdmin } = useAuth();
@@ -23,6 +31,18 @@ export default function Navbar() {
         await signOut();
         navigate('/login');
     };
+
+    // ✨ Smooth Dark Blue → Light Blue Hover Gradient
+    const navHover =
+        "transition-all duration-300 ease-in-out " +
+        "hover:bg-gradient-to-r hover:from-blue-900 hover:via-blue-700 hover:to-sky-400 " +
+        "hover:text-white " +
+        "focus:bg-gradient-to-r focus:from-blue-900 focus:via-blue-700 focus:to-sky-400 focus:text-white " +
+        "active:bg-gradient-to-r active:from-blue-900 active:to-blue-600";
+
+    // Primary Sign Up button styles (dark → light blue gradient)
+    const signUpClasses =
+        "bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-800 hover:to-sky-400 text-white font-bold transition-all duration-300 ease-in-out";
 
     const getInitials = (name?: string) => {
         if (!name) return 'U';
@@ -37,47 +57,52 @@ export default function Navbar() {
     return (
         <header className="w-full">
             <div className="container mx-auto flex h-16 items-center justify-between px-1 sm:px-4">
-                <Link to="/" className="text-xl font-bold text-primary">
+
+                {/* Logo */}
+                <Link
+                    to="/"
+                    className="text-2xl font-extrabold bg-gradient-to-r from-blue-950 via-blue-800 to-blue-600 bg-clip-text text-transparent hover:from-blue-950 hover:via-blue-800 hover:to-blue-500 transition-colors duration-300 drop-shadow-lg"
+                >
                     TestTaker
                 </Link>
 
-
                 <div className="flex items-center gap-2 sm:gap-4">
+
+                    {/* Create Test */}
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/create-test')}
-                        className="flex items-center"
+                        className={`flex items-center ${navHover}`}
                     >
-                        <Plus className="mr-0 h-4 w-4" />
+                        <Plus className="mr-2 h-4 w-4" />
                         <span>Create Test</span>
                     </Button>
 
-                    {/* Desktop Navigation */}
+                    {/* Desktop Nav */}
                     <div className="hidden md:flex items-center gap-2">
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/')}
-                            className="flex items-center"
+                            className={`flex items-center ${navHover}`}
                         >
                             <Home className="mr-2 h-4 w-4" />
-                            <span>Home</span>
+                            Home
                         </Button>
-
-
 
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/support')}
-                            className="flex items-center"
+                            className={`flex items-center ${navHover}`}
                         >
                             <HelpCircle className="mr-2 h-4 w-4" />
-                            <span>Support</span>
+                            Support
                         </Button>
 
                         {!user && (
                             <Button
                                 variant="ghost"
                                 onClick={() => navigate('/admin-login')}
+                                className={navHover}
                             >
                                 <Shield className="mr-2 h-4 w-4" />
                                 Admin
@@ -85,38 +110,41 @@ export default function Navbar() {
                         )}
                     </div>
 
-                    {/* Mobile Menu (Hamburger) */}
+                    {/* Mobile Menu */}
                     <div className="md:hidden">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className={navHover}>
                                     <Menu className="h-5 w-5" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem onClick={() => navigate('/')}>
+                                <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/')}>
                                     <Home className="mr-2 h-4 w-4" />
-                                    <span>Home</span>
+                                    Home
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate('/support')}>
+                                <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/support')}>
                                     <HelpCircle className="mr-2 h-4 w-4" />
-                                    <span>Support</span>
+                                    Support
                                 </DropdownMenuItem>
 
                                 {!user && (
                                     <>
-                                        <DropdownMenuItem onClick={() => navigate('/admin-login')}>
+                                        <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/admin-login')}>
                                             <Shield className="mr-2 h-4 w-4" />
-                                            <span>Admin</span>
+                                            Admin
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => navigate('/login')}>
+                                        <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/login')}>
                                             <User className="mr-2 h-4 w-4" />
-                                            <span>Login</span>
+                                            Login
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => navigate('/login', { state: { isSignup: true } })}>
+                                        <DropdownMenuItem
+                                            className={`${navHover} cursor-pointer`}
+                                            onClick={() => navigate('/login', { state: { isSignup: true } })}
+                                        >
                                             <User className="mr-2 h-4 w-4" />
-                                            <span>Sign Up</span>
+                                            Sign Up
                                         </DropdownMenuItem>
                                     </>
                                 )}
@@ -124,72 +152,78 @@ export default function Navbar() {
                         </DropdownMenu>
                     </div>
 
-                    {/* Authenticated User Avatar (Visible on both) */}
+                    {/* User Avatar */}
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                <Button variant="ghost" className={`relative h-8 w-8 rounded-full ${navHover}`}>
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name} />
+                                        <AvatarImage src={user.user_metadata?.avatar_url} />
                                         <AvatarFallback>{getInitials(user.user_metadata?.full_name)}</AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
+
+                            <DropdownMenuContent className="w-56" align="end">
+                                <DropdownMenuLabel>
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || 'User'}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
+                                        <p className="text-sm font-medium">
+                                            {user.user_metadata?.full_name || 'User'}
                                         </p>
+                                        <p className="text-xs text-muted-foreground">{user.email}</p>
                                     </div>
                                 </DropdownMenuLabel>
+
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => navigate('/profile')}>
+
+                                <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/profile')}>
                                     <User className="mr-2 h-4 w-4" />
-                                    <span>Profile</span>
+                                    Profile
                                 </DropdownMenuItem>
+
                                 {isAdmin ? (
                                     <>
-                                        <DropdownMenuItem onClick={() => navigate('/manage-tests')}>
+                                        <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/manage-tests')}>
                                             <Shield className="mr-2 h-4 w-4" />
-                                            <span>Manage Tests</span>
+                                            Manage Tests
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => navigate('/admin-migration')}>
+                                        <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/admin-migration')}>
                                             <Shield className="mr-2 h-4 w-4" />
-                                            <span>Admin Data Migration</span>
+                                            Admin Data Migration
                                         </DropdownMenuItem>
                                     </>
                                 ) : (
                                     <>
-                                        <DropdownMenuItem onClick={() => navigate('/my-tests')}>
+                                        <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/my-tests')}>
                                             <Shield className="mr-2 h-4 w-4" />
-                                            <span>Your Tests</span>
+                                            Your Tests
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => navigate('/history')}>
+                                        <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/history')}>
                                             <History className="mr-2 h-4 w-4" />
-                                            <span>Test History</span>
+                                            Test History
                                         </DropdownMenuItem>
                                     </>
                                 )}
-                                <DropdownMenuItem onClick={() => navigate('/create-test')}>
+
+                                <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={() => navigate('/create-test')}>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    <span>Create Test</span>
+                                    Create Test
                                 </DropdownMenuItem>
 
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleSignOut}>
+
+                                <DropdownMenuItem className={`${navHover} cursor-pointer`} onClick={handleSignOut}>
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
+                                    Log out
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
                         <div className="hidden md:flex gap-2">
-                            <Button variant="ghost" onClick={() => navigate('/login')}>
+                            <Button variant="ghost" onClick={() => navigate('/login')} className={navHover}>
                                 Login
                             </Button>
-                            <Button onClick={() => navigate('/login', { state: { isSignup: true } })}>
+                            <Button className={signUpClasses} onClick={() => navigate('/login', { state: { isSignup: true } })}>
                                 Sign Up
                             </Button>
                         </div>

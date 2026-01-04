@@ -17,6 +17,8 @@ export default function SupportPage() {
     });
     const [loading, setLoading] = useState(false);
 
+    const sendBtnClasses = "bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-800 hover:to-sky-400 text-white font-bold w-full py-3 rounded-md transition-all duration-200 disabled:opacity-50";
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -107,7 +109,7 @@ export default function SupportPage() {
                                 />
                             </div>
 
-                            <Button type="submit" className="w-full" disabled={loading}>
+                            <Button type="submit" className={sendBtnClasses} disabled={loading}>
                                 {loading ? 'Sending...' : (
                                     <>
                                         Send Message <Send className="ml-2 h-4 w-4" />

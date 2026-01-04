@@ -1019,7 +1019,7 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                     ) : (
                         <Button variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
                     )}
-                    <Button onClick={handleSave} disabled={loading} size="lg" className="min-w-[150px]">{loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Save Test</Button>
+                    <Button onClick={handleSave} disabled={loading} size="lg" className="min-w-[150px] bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">{loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Save Test</Button>
                 </div>
             </div>
         </div>
