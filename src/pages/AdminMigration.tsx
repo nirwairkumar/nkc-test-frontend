@@ -262,7 +262,7 @@ export default function AdminMigration() {
                             value={newSectionName}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewSectionName(e.target.value)}
                         />
-                        <Button onClick={handleCreateSection} disabled={!newSectionName.trim()}>
+                        <Button onClick={handleCreateSection} disabled={!newSectionName.trim()} className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">
                             <Plus className="h-4 w-4 mr-2" /> Add
                         </Button>
                     </div>
@@ -278,7 +278,7 @@ export default function AdminMigration() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button onClick={handleSeed} disabled={loading} className="w-full">
+                        <Button onClick={handleSeed} disabled={loading} className="w-full bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Load Example Data
                         </Button>

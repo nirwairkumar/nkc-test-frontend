@@ -630,10 +630,10 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                     <div className="flex flex-col items-end gap-1">
                         <label className="cursor-pointer">
                             <input type="file" accept=".json" className="hidden" onChange={handleJsonImport} />
-                            <div className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 py-2 cursor-pointer">
-                                <Upload className="w-4 h-4 mr-2" />
-                                Import JSON
-                            </div>
+                                <div className="inline-flex items-center justify-center rounded-md text-sm font-bold transition-colors disabled:pointer-events-none disabled:opacity-50 h-9 px-3 py-2 cursor-pointer bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white">
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Import JSON
+                                </div>
                         </label>
                         <TestUploadFormatGuide />
                     </div>
@@ -794,7 +794,17 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                             <div><Label>Time (mins)</Label><Input type="number" value={time} onChange={e => setTime(parseInt(e.target.value))} /></div>
                             <div><Label>Marks/Q</Label><Input type="number" value={marks} onChange={e => setMarks(parseInt(e.target.value))} /></div>
                             <div><Label>Negative</Label><Input type="number" step="0.25" value={negativeMarks} onChange={e => setNegativeMarks(parseFloat(e.target.value))} /></div>
-                            <div><Label>Visibility</Label><div className="flex items-center space-x-2 h-10"><Switch checked={isPublic} onCheckedChange={setIsPublic} /><Label>{isPublic ? 'Public' : 'Private'}</Label></div></div>
+                            <div>
+                                <Label>Visibility</Label>
+                                <div className="flex items-center space-x-2 h-10">
+                                    <Switch
+                                        checked={isPublic}
+                                        onCheckedChange={setIsPublic}
+                                        className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-800 data-[state=checked]:to-blue-600"
+                                    />
+                                    <Label className={isPublic ? 'text-blue-700 font-semibold' : ''}>{isPublic ? 'Public' : 'Private'}</Label>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -1010,7 +1020,7 @@ export default function TestBuilder({ initialData, onSuccess, onCancel }: TestBu
                             </div>
                         );
                     })}
-                    <Button onClick={handleAddQuestion} size="sm" variant="outline" className="w-full"><Plus className="w-4 h-4 mr-2" /> Add Question</Button>
+                    <Button onClick={handleAddQuestion} size="sm" className="w-full bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold"><Plus className="w-4 h-4 mr-2" /> Add Question</Button>
                 </div>
 
                 <div className="flex justify-end gap-4 pb-20">

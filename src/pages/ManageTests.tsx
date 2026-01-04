@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { fetchTests, updateTest, assignSectionsToTest, fetchSections, fetchTestSections, updateSection, deleteSection, createSection, Section } from '@/integrations/api';
 // import { supabase } from '@/lib/supabaseClient'; // REMOVED
-import { Trash2, Settings, Save, Plus, Pencil } from 'lucide-react';
+import { Trash2, Settings, Save, Plus, Pencil, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -215,37 +215,82 @@ export default function ManageTests() {
                             </div>
                         ) : (
                             tests.map(test => (
-                                <Card key={test.id} className="relative group hover:shadow-md transition-shadow">
-                                    <CardHeader className="pb-2">
-                                        <div className="flex justify-between items-start gap-2">
-                                            <CardTitle className="text-lg line-clamp-1" title={test.title}>{test.title}</CardTitle>
-                                            <Badge variant="secondary" className="font-mono text-xs">
-                                                {test.custom_id || 'NO-ID'}
-                                            </Badge>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="pb-2">
-                                        <div className="text-xs text-muted-foreground flex gap-4">
-                                            <span>{test.questions?.length || 0} Qs</span>
-                                            <span>{test.duration || 0} mins</span>
-                                            <span>{test.marks_per_question || '-'} Marks</span>
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter className="pt-2 flex justify-between gap-2 border-t bg-slate-50/50 dark:bg-slate-900/50">
-                                        <Button variant="outline" size="sm" className="w-full" onClick={() => openTestEditDialog(test)}>
-                                            <Settings className="h-3 w-3 mr-2" />
-                                            Edit Test
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                            onClick={() => handleDeleteTest(test.id, test.title)}
-                                            title="Delete Test"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </CardFooter>
+                                <Card 
+                                    key={test.id}
+                                    className="group relative h-[420px] bg-white/40 backdrop-blur-xl border-white/80 rounded-[24px] shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col"
+                                    style={{
+                                        backgroundImage: test.bgImage ? `url(${test.bgImage})` : 'none',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                >
+                                    {test.bgImage && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] group-hover:bg-white/40 transition-colors" />}
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <CardHeader className="p-6 pb-2">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50/80 px-2 py-1 rounded-md w-fit">
+                                                        {test.category || test.displayCategory || 'General'}
+                                                    </span>
+                                                    <div className="flex items-center gap-1 text-slate-500 text-xs font-mono">
+                                                        #{test.custom_id || test.displayId || 'NO-ID'}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <label className="cursor-pointer">
+                                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            const reader = new FileReader();
+                                                            reader.onload = () => {
+                                                                const url = reader.result as string;
+                                                                setTests(prev => prev.map(t => t.id === test.id ? { ...t, bgImage: url } : t));
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                            e.currentTarget.value = '';
+                                                        }} />
+                                                        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" title="Set background image">
+                                                            <Upload className="w-4 h-4" />
+                                                        </Button>
+                                                    </label>
+                                                    <Button variant="ghost" size="sm" onClick={() => openTestEditDialog(test)} title="Edit Test">
+                                                        <Settings className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteTest(test.id, test.title)} title="Delete Test">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            <CardTitle className="text-2xl font-bold line-clamp-2 text-slate-900 group-hover:text-blue-700 transition-colors">{test.title}</CardTitle>
+                                        </CardHeader>
+
+                                        <CardContent className="p-6 pt-0 flex-1 flex flex-col justify-between">
+                                            <div className="flex items-center gap-6 text-sm font-bold text-slate-700">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium">{test.questions?.length || 0} Qs</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium">{test.duration || 0}m</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium">{test.marks_per_question || '-'} Marks</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/80 border border-white/50 w-fit mt-4">
+                                                <div className="h-6 w-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">{(test.displayCreator || test.creator || 'AD').substring(0,2).toUpperCase()}</div>
+                                                <span className="text-[10px] font-bold uppercase text-slate-700">{test.displayCreator || test.creator || 'Admin'}</span>
+                                            </div>
+                                        </CardContent>
+
+                                        <CardFooter className="p-6 pt-0">
+                                            <Button 
+                                                className="w-full h-12 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-black text-lg shadow-xl"
+                                                onClick={() => navigate(`/edit-test/${test.id}`)}
+                                            >
+                                                Manage
+                                            </Button>
+                                        </CardFooter>
+                                    </div>
                                 </Card>
                             ))
                         )}
@@ -261,7 +306,7 @@ export default function ManageTests() {
                                     <CardTitle>Test Sections</CardTitle>
                                     <CardDescription>Create and rename sections (e.g., JEE, NEET, Physics, Math).</CardDescription>
                                 </div>
-                                <Button onClick={() => openSectionDialog()} size="sm">
+                                <Button onClick={() => openSectionDialog()} size="sm" className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">
                                     <Plus className="w-4 h-4 mr-2" /> Add Section
                                 </Button>
                             </div>
@@ -374,7 +419,7 @@ export default function ManageTests() {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsTestEditOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveTest}>Save Changes</Button>
+                        <Button onClick={handleSaveTest} className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -267,7 +267,7 @@ const ProfilePage = () => {
                             </div>
 
                             <div className="flex justify-end">
-                                <Button type="submit" disabled={loading || uploading}>
+                                <Button type="submit" disabled={loading || uploading} className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">
                                     {loading ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

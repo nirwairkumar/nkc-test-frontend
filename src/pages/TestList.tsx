@@ -176,13 +176,11 @@ export default function TestList() {
                                                 </div>
                                             </div>
                                             
-                                            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/80 border border-white/50 w-fit">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarFallback className="bg-blue-600 text-white text-[10px]">
-                                                        {test.displayCreator.substring(0,2).toUpperCase()}
-                                                    </AvatarFallback>
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/80 border border-white/50 w-fit">
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarFallback className="bg-blue-600 text-white text-[10px] leading-none">{test.displayCreator.substring(0,2).toUpperCase()}</AvatarFallback>
                                                 </Avatar>
-                                                <span className="text-xs font-black uppercase text-slate-700">
+                                                <span className="text-[10px] font-bold uppercase text-slate-700">
                                                     {test.displayCreator}
                                                 </span>
                                             </div>

@@ -183,7 +183,7 @@ export default function UserTestManager() {
                                     }
                                 }}
                             />
-                            <Button variant="outline" size="sm" asChild>
+                            <Button size="sm" asChild className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-sky-500 text-white font-bold">
                                 <span><Upload className="w-4 h-4 mr-2" /> Import JSON</span>
                             </Button>
                         </label>
