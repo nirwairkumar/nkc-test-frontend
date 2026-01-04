@@ -130,12 +130,12 @@ export default function TestList() {
                     <YouTubeGenerator onTestGenerated={loadData} />
                 </div>
                 
-                <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     <AnimatePresence>
                         {filteredTests.map((test) => (
                             <motion.div key={test.id} variants={itemVariants} whileHover={{ y: -10 }} layout>
                                 <Card 
-                                    className="group relative h-[450px] bg-white/40 backdrop-blur-xl border-white/80 rounded-[32px] shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col"
+                                    className="group relative h-[310px] bg-white/40 backdrop-blur-xl border-white/80 rounded-[28px] shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col"
                                     style={{
                                         backgroundImage: test.bgImage ? `url(${test.bgImage})` : 'none',
                                         backgroundSize: 'cover',
@@ -146,53 +146,52 @@ export default function TestList() {
                                     {test.bgImage && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] group-hover:bg-white/40 transition-colors" />}
                                     
                                     <div className="relative z-10 flex flex-col h-full">
-                                        <CardHeader className="p-8 pb-4">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50/80 px-2 py-1 rounded-md w-fit">
+                                        <CardHeader className="p-2 pb-1">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <div className="flex flex-col gap-0">
+                                                    <span className="text-[9px] font-semibold text-blue-600 bg-blue-50/80 px-0.5 py-0.5 rounded-md w-fit">
                                                         {test.displayCategory}
                                                     </span>
-                                                    <div className="flex items-center gap-1 text-slate-500 text-xs font-mono">
+                                                    <div className="flex items-center gap-1 text-slate-500 text-[11px] font-mono">
                                                         <Hash className="h-3 w-3" />
                                                         {test.displayId}
                                                     </div>
                                                 </div>
                                                 <TestLikeButton testId={test.id} userId={user?.id} />
                                             </div>
-                                            <CardTitle className="text-xl font-bold line-clamp-2 text-slate-900 group-hover:text-blue-700 transition-colors">
+                                            <CardTitle className="text-base font-semibold line-clamp-2 text-slate-900 group-hover:text-blue-700 transition-colors">
                                                 {test.title}
                                             </CardTitle>
                                         </CardHeader>
 
-                                        <CardContent className="p-8 pt-0 flex-1 flex flex-col justify-between">
-                                            <div className="flex items-center gap-6 text-sm font-bold text-slate-700">
+                                        <CardContent className="p-2 pt-0 flex-1 flex flex-col justify-between">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                                                 <div className="flex items-center gap-2">
-                                                    <Clock className="h-4 w-4 text-blue-600" />
+                                                    <Clock className="h-3.5 w-3.5 text-blue-600" />
                                                     {test.displayDuration}m
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <PlusCircle className="h-4 w-4 text-blue-600" />
+                                                    <PlusCircle className="h-3.5 w-3.5 text-blue-600" />
                                                     {test.displayQCount} Qs
                                                 </div>
                                             </div>
-                                            
-                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/80 border border-white/50 w-fit">
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarFallback className="bg-blue-600 text-white text-[10px] leading-none">{test.displayCreator.substring(0,2).toUpperCase()}</AvatarFallback>
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/80 border border-white/50 w-fit">
+                                                <Avatar className="h-4 w-4">
+                                                    <AvatarFallback className="bg-blue-600 text-white text-[8px] leading-none">{test.displayCreator.substring(0,2).toUpperCase()}</AvatarFallback>
                                                 </Avatar>
-                                                <span className="text-[10px] font-bold uppercase text-slate-700">
+                                                <span className="text-[8px] font-semibold uppercase text-slate-700">
                                                     {test.displayCreator}
                                                 </span>
                                             </div>
                                         </CardContent>
 
-                                        <CardFooter className="p-8 pt-0">
+                                        <CardFooter className="p-2 pt-0">
                                             <Button 
-                                                className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-black text-lg shadow-xl"
+                                                className="w-full h-9 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-medium text-sm shadow-sm"
                                                 onClick={() => navigate(`/test-intro/${test.id}`)}
                                             >
                                                 Open
-                                                <ArrowRight className="ml-2 h-5 w-5" />
+                                                <ArrowRight className="ml-2 h-3.5 w-3.5" />
                                             </Button>
                                         </CardFooter>
                                     </div>
