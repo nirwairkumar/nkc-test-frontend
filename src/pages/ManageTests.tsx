@@ -206,7 +206,7 @@ export default function ManageTests() {
                         <Button variant="outline" onClick={loadTests} size="sm">Refresh Tests</Button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {testsLoading ? (
                             <div className="col-span-full text-center py-10">Loading tests...</div>
                         ) : tests.length === 0 ? (
@@ -217,7 +217,7 @@ export default function ManageTests() {
                             tests.map(test => (
                                 <Card 
                                     key={test.id}
-                                    className="group relative h-[420px] bg-white/40 backdrop-blur-xl border-white/80 rounded-[24px] shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col"
+                                    className="group relative h-[320px] bg-white/40 backdrop-blur-xl border-white/80 rounded-[20px] shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col"
                                     style={{
                                         backgroundImage: test.bgImage ? `url(${test.bgImage})` : 'none',
                                         backgroundSize: 'cover',
@@ -226,13 +226,13 @@ export default function ManageTests() {
                                 >
                                     {test.bgImage && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] group-hover:bg-white/40 transition-colors" />}
                                     <div className="relative z-10 flex flex-col h-full">
-                                        <CardHeader className="p-6 pb-2">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50/80 px-2 py-1 rounded-md w-fit">
+                                        <CardHeader className="p-2 pb-1">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <div className="flex flex-col gap-0">
+                                                    <span className="text-[9px] font-semibold text-blue-600 bg-blue-50/80 px-1 py-0.5 rounded-md w-fit">
                                                         {test.category || test.displayCategory || 'General'}
                                                     </span>
-                                                    <div className="flex items-center gap-1 text-slate-500 text-xs font-mono">
+                                                    <div className="flex items-center gap-1 text-slate-500 text-[11px] font-mono">
                                                         #{test.custom_id || test.displayId || 'NO-ID'}
                                                     </div>
                                                 </div>
@@ -261,30 +261,30 @@ export default function ManageTests() {
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <CardTitle className="text-2xl font-bold line-clamp-2 text-slate-900 group-hover:text-blue-700 transition-colors">{test.title}</CardTitle>
+                                            <CardTitle className="text-xl font-semibold line-clamp-2 text-slate-900 group-hover:text-blue-700 transition-colors">{test.title}</CardTitle>
                                         </CardHeader>
 
-                                        <CardContent className="p-6 pt-0 flex-1 flex flex-col justify-between">
-                                            <div className="flex items-center gap-6 text-sm font-bold text-slate-700">
+                                        <CardContent className="p-2 pt-0 flex-1 flex flex-col justify-between">
+                                            <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium">{test.questions?.length || 0} Qs</span>
+                                                    <span className="text-xs font-medium">{test.questions?.length || 0} Qs</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium">{test.duration || 0}m</span>
+                                                    <span className="text-xs font-medium">{test.duration || 0}m</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium">{test.marks_per_question || '-'} Marks</span>
+                                                    <span className="text-xs font-medium">{test.marks_per_question || '-'} Marks</span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/80 border border-white/50 w-fit mt-4">
-                                                <div className="h-6 w-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">{(test.displayCreator || test.creator || 'AD').substring(0,2).toUpperCase()}</div>
-                                                <span className="text-[10px] font-bold uppercase text-slate-700">{test.displayCreator || test.creator || 'Admin'}</span>
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/80 border border-white/50 w-fit mt-3">
+                                                <div className="h-5 w-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px] font-bold">{(test.displayCreator || test.creator || 'AD').substring(0,2).toUpperCase()}</div>
+                                                <span className="text-[9px] font-semibold uppercase text-slate-700">{test.displayCreator || test.creator || 'Admin'}</span>
                                             </div>
                                         </CardContent>
 
-                                        <CardFooter className="p-6 pt-0">
+                                        <CardFooter className="p-2 pt-0">
                                             <Button 
-                                                className="w-full h-12 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-black text-lg shadow-xl"
+                                                className="w-full h-10 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-semibold text-sm shadow-md"
                                                 onClick={() => navigate(`/edit-test/${test.id}`)}
                                             >
                                                 Manage
