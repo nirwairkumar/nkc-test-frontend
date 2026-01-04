@@ -1,6 +1,6 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { signIn as apiSignIn, signOut as apiSignOut, getCurrentUser } from "@/integrations/api";
+import { signIn as apiSignIn, signOut as apiSignOut, getCurrentUser, signUp as apiSignUp } from "@/integrations/api";
 import { MockUser, mockUser as defaultMockUser } from "@/data/mockUser";
 
 // Define context shape explicitly
@@ -10,7 +10,7 @@ interface AuthContextType {
     loading: boolean;
     isAdmin: boolean;
     signIn: (email: string, password?: string) => Promise<any>;
-    signUp: () => Promise<any>;
+    signUp: (email: string, password?: string, name?: string, designation?: string) => Promise<any>;
     signOut: () => Promise<void>;
 }
 
@@ -77,9 +77,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const signUp = async () => {
-        // Mock signup - for now just return success
-        return { user: null };
+    const signUp = async (email: string, password?: string, name?: string, designation?: string) => {
+        // Mock signup
+        return apiSignUp(email, password || "password", { full_name: name, designation });
     };
 
     return (

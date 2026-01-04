@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
+// import { supabase } from '@/lib/supabaseClient';
 import { Trash2, Settings, Loader2, Edit, Heart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -95,7 +95,8 @@ export default function UserTestManager() {
     const confirmDelete = async () => {
         if (!deleteId) return;
         try {
-            const { error } = await supabase.from('tests').delete().eq('id', deleteId);
+            const { deleteTest } = await import('@/integrations/api');
+            const { error } = await deleteTest(deleteId);
             if (error) throw error;
             setTests(prev => prev.filter(t => t.id !== deleteId));
             toast.success(`Test "${deleteTitle}" deleted`);

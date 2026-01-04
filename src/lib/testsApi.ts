@@ -1,6 +1,9 @@
 // src/lib/testsApi.ts
-import supabase from '@/lib/supabaseClient';
+import { mockTests } from '@/data/mockTests';
+import { MockTest } from '@/data/mockTests';
+import { MockQuestion } from '@/data/mockQuestions';
 
+// Re-export interfaces to match existing usage in components
 export interface Test {
     id: string; // uuid
     title: string;
@@ -41,127 +44,87 @@ export interface TestSettings {
     };
 }
 
+export interface Question extends MockQuestion {
+    // Extending MockQuestion to ensure compatibility, or re-defining if needed.
+    // MockQuestion from data file has: id, type, question, options, correctAnswer, etc.
+}
 
-export interface Question {
-    id: number;
-    type?: 'single' | 'multiple' | 'numerical' | 'single-advance' | 'comprehension'; // Default 'single'
-    question: string;
-    image?: string;
-    passageContent?: string; // For comprehension type
-    groupId?: string; // To group questions in editor
-    options?: { [key: string]: string }; // Optional for numerical
-    optionImages?: { [key: string]: string };
-    correctAnswer: string | string[] | { min: number, max: number }; // Dynamic type
+// Helper to simulate network delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const mapMockToTest = (mock: MockTest): Test => {
+    // Explicit mapping if needed, currently they look compatible enough for the UI
+    // specific fields might differ but for basic display it works.
+    return mock as unknown as Test;
 }
 
 export async function createTest(testData: Partial<Test>) {
-    const { data, error } = await supabase
-        .from('tests')
-        .insert([testData])
-        .select()
-        .single();
-    return { data, error };
-    return { data, error };
+    await delay(500);
+    const newTest: MockTest = {
+        ...testData as any,
+        id: `test-new-${Date.now()}`,
+        questions: testData.questions || [],
+        created_at: new Date().toISOString(),
+        title: testData.title || 'Untitled Test',
+        description: testData.description || '',
+        duration: testData.duration || 60,
+        marks_per_question: testData.marks_per_question || 4,
+        negative_marks: testData.negative_marks || 0,
+        created_by: 'user-123', // Mock current user
+        is_public: !!testData.is_public
+    };
+    mockTests.unshift(newTest);
+    return { data: mapMockToTest(newTest), error: null };
 }
 
 export async function updateTest(id: string, updates: Partial<Test>) {
-    const { data, error } = await supabase
-        .from('tests')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-    return { data, error };
+    await delay(500);
+    const index = mockTests.findIndex(t => t.id === id);
+    if (index === -1) return { data: null, error: { message: 'Test not found' } };
+
+    mockTests[index] = { ...mockTests[index], ...updates };
+    return { data: mapMockToTest(mockTests[index]), error: null };
 }
 
 export async function fetchTests() {
-    const { data, error } = await supabase
-        .from('tests')
-        .select('*')
-        .or('is_public.eq.true,is_public.is.null') // Show public tests OR older tests with null status
-        .order('created_at', { ascending: false });
-    return { data, error };
+    await delay(600);
+    // Return all tests for now
+    return { data: mockTests.map(mapMockToTest), error: null };
 }
 
 export async function getNextTestId(prefix: 'M' | 'YT'): Promise<string> {
-    // Fetch all custom_ids to determine the next number
-    // Ideally we would do this with a database function, but for now we'll do it client-side
-    // assuming low volume.
-    const { data, error } = await supabase
-        .from('tests')
-        .select('custom_id')
-        .not('custom_id', 'is', null);
-
-    let maxNum = 100; // Start from 100 so first is 101
-
-    if (data && data.length > 0) {
-        data.forEach(row => {
-            if (row.custom_id) {
-                // Extract number part: match M-123 or YT-123
-                const match = row.custom_id.match(/-(.+)$/);
-                if (match && match[1]) {
-                    const num = parseInt(match[1]);
-                    if (!isNaN(num) && num > maxNum) {
-                        maxNum = num;
-                    }
-                }
-            }
-        });
-    }
-
-    return `${prefix}-${maxNum + 1}`;
+    await delay(200);
+    // Simple random ID for mock
+    return `${prefix}-${Math.floor(Math.random() * 10000)}`;
 }
 
 export async function fetchTestById(id: string) {
-    const { data, error } = await supabase
-        .from('tests')
-        .select('*')
-        .eq('id', id)
-        .single();
-    return { data, error };
+    await delay(400);
+    const test = mockTests.find(t => t.id === id);
+    if (!test) {
+        return { data: null, error: { message: 'Test not found' } };
+    }
+    return { data: mapMockToTest(test), error: null };
 }
+
 export async function fetchTestsByUserId(userId: string) {
-    const { data, error } = await supabase
-        .from('tests')
-        .select('*, test_likes(count)')
-        .eq('created_by', userId)
-        .order('created_at', { ascending: false });
-    return { data, error };
+    await delay(400);
+    const tests = mockTests.filter(t => t.created_by === userId);
+    return { data: tests.map(mapMockToTest), error: null };
 }
 
 export async function toggleTestLike(testId: string, userId: string) {
-    // Check if like exists
-    const { data: existingLike, error: checkError } = await supabase
-        .from('test_likes')
-        .select('id')
-        .eq('test_id', testId)
-        .eq('user_id', userId)
-        .single();
-
-    if (existingLike) {
-        // Unlike
-        const { error } = await supabase.from('test_likes').delete().eq('id', existingLike.id);
-        return { liked: false, error };
-    } else {
-        // Like
-        const { error } = await supabase.from('test_likes').insert({ test_id: testId, user_id: userId });
-        return { liked: true, error };
-    }
+    await delay(300);
+    // Mock toggle
+    return { liked: true, error: null };
 }
 
 export async function getTestLikeCount(testId: string) {
-    const { count, error } = await supabase
-        .from('test_likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('test_id', testId);
-    return { count, error };
+    await delay(200);
+    return { count: 15, error: null };
 }
+
 export async function getTestLikeStatus(testId: string, userId: string) {
-    const { data, error } = await supabase
-        .from('test_likes')
-        .select('id')
-        .eq('test_id', testId)
-        .eq('user_id', userId)
-        .maybeSingle();
-    return { liked: !!data, error };
+    await delay(200);
+    return { liked: false, error: null };
 }

@@ -1,20 +1,10 @@
 // src/lib/supabaseClient.ts
-import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Disabling Supabase client for standalone frontend mode
+// The application should now rely entirely on src/data/mock*.ts so this client should not be used.
 
-let supabaseInstance = null;
-
-if (SUPABASE_URL && SUPABASE_KEY) {
-    try {
-        supabaseInstance = createClient(String(SUPABASE_URL), String(SUPABASE_KEY));
-    } catch (e) {
-        console.warn("Supabase initialization failed:", e);
-    }
-} else {
-    console.warn('Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. Supabase client will be null.');
-}
-
-export const supabase = supabaseInstance;
+// Exporting null to ensure any missed usage throws/fails explicitly or safely.
+// If you need a dummy object to prevent crashes, we can add it, but null is safer to catch missed migrations.
+export const supabase = null;
 export default supabase;
+
