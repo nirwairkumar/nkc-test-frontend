@@ -1,209 +1,289 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion'; 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { fetchTests } from '@/integrations/api';
-import { 
-  Clock, ArrowRight, Loader2, Search, 
-  PlusCircle, Sparkles, Hash
-} from 'lucide-react';
+import { fetchTests, fetchSections, fetchTestSections, fetchTestsByUserId } from '@/integrations/api';
+import type { MockTest as Test } from '@/data/mockTests'; 
+import { Clock, ArrowRight, Loader2, Search, Share2, ChevronRight, ChevronLeft, RefreshCw, Settings, Edit } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import YouTubeGenerator from '@/components/YouTubeGenerator';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
+
 import TestLikeButton from '@/components/TestLikeButton';
 import TestSettingsPanel from '@/components/TestSettingsPanel';
 
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
+// --- Sub-component: Section Tag Scroller ---
+function TestCardSectionList({ sectionIds, allSections }: { sectionIds: string[] | undefined, allSections: any[] }) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showRightArrow, setShowRightArrow] = useState(false);
+    const [showLeftArrow, setShowLeftArrow] = useState(false);
 
-const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
-};
+    const sections = useMemo(() => 
+        (sectionIds || []).map(id => allSections.find(s => s.id === id)).filter(Boolean),
+        [sectionIds, allSections]
+    );
 
+    const checkOverflow = () => {
+        if (scrollRef.current) {
+            const { scrollWidth, clientWidth, scrollLeft } = scrollRef.current;
+            setShowRightArrow(scrollWidth > clientWidth && Math.ceil(scrollLeft + clientWidth) < scrollWidth);
+            setShowLeftArrow(scrollLeft > 0);
+        }
+    };
+
+    useEffect(() => {
+        checkOverflow();
+        window.addEventListener('resize', checkOverflow);
+        return () => window.removeEventListener('resize', checkOverflow);
+    }, [sections]);
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const amount = 100;
+            scrollRef.current.scrollBy({ left: direction === 'right' ? amount : -amount, behavior: 'smooth' });
+            setTimeout(checkOverflow, 300);
+        }
+    };
+
+    if (sections.length === 0) return null;
+
+    return (
+        <div className="flex-1 min-w-0 relative group flex items-center justify-end">
+            {showLeftArrow && (
+                <div className="absolute left-0 z-10 h-full flex items-center bg-gradient-to-r from-white to-transparent pr-2">
+                    <button onClick={(e) => { e.stopPropagation(); scroll('left'); }} className="h-5 w-5 flex items-center justify-center hover:text-primary transition-colors">
+                        <ChevronLeft className="h-4 w-4 text-slate-500" />
+                    </button>
+                </div>
+            )}
+            <div
+                ref={scrollRef}
+                onScroll={checkOverflow}
+                className="flex items-center gap-1 overflow-x-auto scrollbar-hide max-w-full px-1"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                {sections.map((sec: any) => (
+                    <span key={sec.id} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 whitespace-nowrap shrink-0">
+                        {sec.name}
+                    </span>
+                ))}
+            </div>
+            {showRightArrow && (
+                <div className="absolute right-0 z-10 h-full flex items-center bg-gradient-to-l from-white to-transparent pl-2">
+                    <button onClick={(e) => { e.stopPropagation(); scroll('right'); }} className="h-5 w-5 flex items-center justify-center hover:text-primary transition-colors">
+                        <ChevronRight className="h-4 w-4 text-slate-500" />
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// --- Main Page Component ---
 export default function TestList() {
-    const [tests, setTests] = useState<any[]>([]);
+    const [tests, setTests] = useState<Test[]>([]);
+    const [sections, setSections] = useState<any[]>([]);
+    const [testSectionMap, setTestSectionMap] = useState<Record<string, string[]>>({});
+    const [userTests, setUserTests] = useState<Test[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-    const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [configuringTest, setConfiguringTest] = useState<any>(null);
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-    const specificTestData = [
-        { 
-            title: "JAM 2025 Biotechnology (BT)", 
-            q: 60, m: 180, id: "#M-936218", 
-            creator: "TestoZa", category: "IIT JAM",
-            // Reference the generated image path here
-            bgImage: "/Gemini_Generated_Image_3zerim3zerim3zer.png" 
-        },
-        { title: "Evolution and Architecture of GPT Models", q: 10, m: 10, id: "#YT-936217", creator: "Nirwair Chaudhary", category: "AI" },
-        { title: "Breadth-First Search (BFS) and Depth-First Search (DFS) Algorithms", q: 10, m: 10, id: "#YT-936216", creator: "Deeksha G", category: "Algorithms" },
-        { title: "Exam Strategy: Managing Mental Fatigue in CSAT", q: 10, m: 10, id: "#YT-936215", creator: "Joseph George", category: "CSAT" },
-        { title: "JEE-Mains 3rd April shift 2", q: 75, m: 180, id: "#M-936212", creator: "Satyam College of Engineering", category: "JEE" },
-        { title: "JEE-Mains 2025 4th April Shift 1", q: 75, m: 180, id: "#M-936210", creator: "Satyam College of Engineering", category: "JEE" },
-        { title: "SSC CGL Tier-I – 12th September 2025 Shift-1 (Solved Paper)", q: 100, m: 60, id: "#M-936207", creator: "TestoZa", category: "SSC" },
-        { title: "JEE Main 2025 – 22 January Shift 1 (MathonGo Solved Paper)", q: 75, m: 180, id: "#M-936206", creator: "Nirwair Chaudhary", category: "JEE-Mains" },
-        { title: "BPSC General Science Preparation Strategy: Strategy & Resources", q: 12, m: 18, id: "#YT-350308", creator: "TestoZa", category: "BPSC" },
-        { title: "Roscosmos Reality 2025: Russia's Space Program History", q: 12, m: 18, id: "#YT-936196", creator: "TestoZa", category: "Space" },
-        { title: "Is AI Making People Dumber? The Impact on Cognitive Abilities", q: 10, m: 15, id: "#YT-612217", creator: "Nirwair Chaudhary", category: "AI" },
-        { title: "India's Week in Review: Social, Political, Trends", q: 10, m: 15, id: "#YT-770125", creator: "TestoZa", category: "Current Affairs" },
-        { title: "BPSC AEDO 2025 Maths Marathon", q: 47, m: 47, id: "#nkc110", creator: "TC Creator", category: "Maths" },
-        { title: "High Level Mathematics – JEE / CAT / GATE", q: 8, m: 8, id: "#nkc4043", creator: "TC Creator", category: "Maths" },
-        { title: "Modern History – 71st BPSC Pre", q: 102, m: 30, id: "#nkca104", creator: "TC Creator", category: "History" },
-        { title: "General Science", q: 4, m: 4, id: "#example-data", creator: "TC Creator", category: "Science" },
-        { title: "Basic Mathematics", q: 8, m: 6, id: "#example-data", creator: "TC Creator", category: "Maths" },
-        { title: "IndiGo Crisis 2025 & FDTL Rules", q: 10, m: 30, id: "#nkca103", creator: "TC Creator", category: "GK" },
-        { title: "Indian Constitution – Core Concepts", q: 10, m: 30, id: "#nkca102", creator: "TC Creator", category: "Civics" },
-        { title: "Indian Constitution – UTs & Panchayats", q: 10, m: 30, id: "#nkca101", creator: "TC Creator", category: "Civics" }
-    ];
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const placeholders = ["Search by Title...", "Search by ID...", "Search by Name..."];
 
-    useEffect(() => { loadData(); }, []);
+    // Custom Styles
+    const customBrown = "text-[#7f1d1d]"; 
+    const openButtonClass = "bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-400 text-white border-none shadow-md transition-all duration-300";
+
+    useEffect(() => {
+        loadData();
+        const interval = setInterval(() => setPlaceholderIndex(p => (p + 1) % placeholders.length), 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     async function loadData() {
         try {
             setLoading(true);
-            const { data: testsData } = await fetchTests();
-            const transformed = (testsData || []).map((test, index) => {
-                const info = specificTestData[index % specificTestData.length];
-                return {
-                    ...test,
-                    title: info.title,
-                    displayDuration: info.m,
-                    displayQCount: info.q,
-                    displayId: info.id,
-                    displayCreator: info.creator,
-                    displayCategory: info.category,
-                    bgImage: info.bgImage // Add the image property
-                };
+            const [tData, sData, mData] = await Promise.all([fetchTests(), fetchSections(), fetchTestSections()]);
+            
+            const map: Record<string, string[]> = {};
+            mData.data?.forEach((m: any) => {
+                if (!map[m.test_id]) map[m.test_id] = [];
+                map[m.test_id].push(m.section_id);
             });
-            setTests(transformed);
+
+            setTests(tData.data as any || []);
+            setSections(sData.data || []);
+            setTestSectionMap(map);
+            if (user) loadUserTests();
         } catch (err) {
-            console.error('Failed to load data', err);
+            toast.error("Failed to load tests");
         } finally {
             setLoading(false);
         }
     }
 
-    const filteredTests = tests.filter(test => 
-        test.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-[#f0f9ff]">
-                <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-            </div>
-        );
+    async function loadUserTests() {
+        if (!user) return;
+        const { data } = await fetchTestsByUserId(user.id);
+        if (data) setUserTests((data as any[]).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     }
 
+    const filteredTests = useMemo(() => tests.filter(test => {
+        const query = searchQuery.toLowerCase();
+        return !searchQuery || 
+            test.title.toLowerCase().includes(query) || 
+            test.custom_id?.toLowerCase().includes(query) ||
+            test.creator_name?.toLowerCase().includes(query);
+    }), [searchQuery, tests]);
+
+    const handleShare = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(`${window.location.origin}/test-intro/${id}`);
+        toast.success("Link copied!");
+    };
+
+    if (loading) return (
+        <div className="flex h-screen items-center justify-center bg-blue-50/50">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+    );
+
     return (
-        <div className="min-h-screen relative bg-[#f8fafc] overflow-hidden pb-20 font-sans">
-            <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-blue-200/30 blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-indigo-200/30 blur-[120px] pointer-events-none" />
-
-            <div className="container mx-auto px-4 pt-16 relative z-10">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-                    <div>
-                        <div className="flex items-center gap-2 mb-3">
-                            <Sparkles className="h-4 w-4 text-blue-600" />
-                            <span className="text-blue-700 font-bold text-xs uppercase tracking-widest">Assessment Portal</span>
+        <div className="min-h-screen bg-blue-50/50 pb-12">
+            <div className="container mx-auto py-8 px-4 max-w-7xl">
+                {/* Top Header */}
+                <div className="flex flex-col mb-8 gap-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                           <h1 className="text-3xl font-bold text-black">Available Tests</h1>
+                            <p className="text-slate-500 mt-1 font-medium">Select a test to begin your practice</p>
                         </div>
-                        <h1 className="text-6xl font-black text-slate-800 tracking-tight">Available Tests</h1>
+                        <Button variant="outline" size="sm" onClick={loadData} className="bg-white border-blue-200 text-blue-700">
+                            <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+                        </Button>
                     </div>
-                    <div className="relative w-full md:w-[400px]">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input 
-                            placeholder="Search tests..." 
-                            className="rounded-2xl bg-white/60 backdrop-blur-xl border-none h-16 pl-12 shadow-lg"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div className="mb-14">
                     <YouTubeGenerator onTestGenerated={loadData} />
                 </div>
-                
-                <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <AnimatePresence>
-                        {filteredTests.map((test) => (
-                            <motion.div key={test.id} variants={itemVariants} whileHover={{ y: -10 }} layout>
-                                <Card 
-                                    className="group relative h-[310px] bg-white/40 backdrop-blur-xl border-white/80 rounded-[28px] shadow-sm hover:shadow-2xl transition-all overflow-hidden flex flex-col"
-                                    style={{
-                                        backgroundImage: test.bgImage ? `url(${test.bgImage})` : 'none',
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center'
-                                    }}
-                                >
-                                    {/* Overlay to ensure text readability on background images */}
-                                    {test.bgImage && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] group-hover:bg-white/40 transition-colors" />}
-                                    
-                                    <div className="relative z-10 flex flex-col h-full">
-                                        <CardHeader className="p-2 pb-1">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <div className="flex flex-col gap-0">
-                                                    <span className="text-[9px] font-semibold text-blue-600 bg-blue-50/80 px-0.5 py-0.5 rounded-md w-fit">
-                                                        {test.displayCategory}
-                                                    </span>
-                                                    <div className="flex items-center gap-1 text-slate-500 text-[11px] font-mono">
-                                                        <Hash className="h-3 w-3" />
-                                                        {test.displayId}
-                                                    </div>
-                                                </div>
-                                                <TestLikeButton testId={test.id} userId={user?.id} />
-                                            </div>
-                                            <CardTitle className="text-base font-semibold line-clamp-2 text-slate-900 group-hover:text-blue-700 transition-colors">
-                                                {test.title}
-                                            </CardTitle>
-                                        </CardHeader>
 
-                                        <CardContent className="p-2 pt-0 flex-1 flex flex-col justify-between">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="h-3.5 w-3.5 text-blue-600" />
-                                                    {test.displayDuration}m
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <PlusCircle className="h-3.5 w-3.5 text-blue-600" />
-                                                    {test.displayQCount} Qs
-                                                </div>
+                {/* Recent Tests Section */}
+                {userTests.length > 0 && (
+                    <div className="mb-10">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <h2 className={`text-xl font-bold ${customBrown}`}>Your Recent Tests</h2>
+                            <Button variant="ghost" className="text-blue-600 hover:bg-blue-100/50" onClick={() => navigate('/my-tests')}>
+                                View All <ChevronRight className="ml-1 h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {userTests.slice(0, 3).map((test) => (
+                                <Card key={test.id} className="flex flex-col bg-white border-blue-100 shadow-sm">
+                                    <CardHeader className="p-4 pb-2">
+                                        <CardTitle className={`text-lg font-bold ${customBrown} line-clamp-2`}>{test.title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+                                        <div className="flex items-center justify-between text-xs text-slate-500 mb-4">
+                                            <span className="flex items-center"><Clock className="mr-1 h-3.5 w-3.5" /> {test.questions?.length || 0} Qs • {test.duration || 30}m</span>
+                                            {test.custom_id && <span className="font-mono bg-slate-100 px-2 py-0.5 rounded">#{test.custom_id}</span>}
+                                        </div>
+                                        <div className="flex items-center justify-between h-8">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6"><AvatarImage src={test.creator_avatar}/></Avatar>
+                                                <span className="text-xs font-semibold text-slate-600">{test.creator_name}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/80 border border-white/50 w-fit">
-                                                <Avatar className="h-4 w-4">
-                                                    <AvatarFallback className="bg-blue-600 text-white text-[8px] leading-none">{test.displayCreator.substring(0,2).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="text-[8px] font-semibold uppercase text-slate-700">
-                                                    {test.displayCreator}
-                                                </span>
-                                            </div>
-                                        </CardContent>
-
-                                        <CardFooter className="p-2 pt-0">
-                                            <Button 
-                                                className="w-full h-9 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-medium text-sm shadow-sm"
-                                                onClick={() => navigate(`/test-intro/${test.id}`)}
-                                            >
-                                                Open
-                                                <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                                            </Button>
-                                        </CardFooter>
-                                    </div>
+                                            <TestCardSectionList sectionIds={testSectionMap[test.id]} allSections={sections} />
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="p-4 pt-0 flex gap-2">
+                                        <TestLikeButton testId={test.id} userId={user?.id} />
+                                        <Button size="sm" className={`flex-1 ${openButtonClass}`} onClick={() => navigate(`/test-intro/${test.id}`)}>
+                                            Open <ArrowRight className="ml-2 h-3 w-3" />
+                                        </Button>
+                                    </CardFooter>
                                 </Card>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Explorer Bar */}
+<div className="flex items-center justify-between bg-white border border-blue-100 rounded-xl p-4 mb-8 shadow-sm">
+    {/* Changed to h2, size to text-2xl, and ensured text-black */}
+    <h2 className="text-2xl font-bold text-black px-2">Explore Tests</h2>
+    
+    <div className="relative w-full max-w-sm">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-blue-400" />
+        <Input
+            placeholder={placeholders[placeholderIndex]}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-10 bg-blue-50/30 border-blue-50"
+        />
+    </div>
+</div>
+
+                {/* Main Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredTests.map((test) => (
+                        <Card key={test.id} className="flex flex-col bg-white border-blue-100 hover:shadow-md transition-all relative overflow-hidden group">
+                            <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-white/90 shadow-sm" onClick={(e) => handleShare(e, test.id)}>
+                                    <Share2 className="h-4 w-4 text-blue-600" />
+                                </Button>
+                            </div>
+                            <CardHeader className="p-4 pb-2">
+                                <CardTitle className={`text-lg font-bold leading-tight line-clamp-2 min-h-[3rem] ${customBrown}`}>
+                                    {test.title}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+                                <div className="flex items-center justify-between text-xs text-slate-500 mb-4">
+                                    <span className="flex items-center"><Clock className="mr-1.5 h-3.5 w-3.5" /> {test.questions?.length || 0} Qs • {test.duration || 30}m</span>
+                                    {test.custom_id && <span className="bg-slate-50 px-2 py-0.5 rounded border">#{test.custom_id}</span>}
+                                </div>
+                                <div className="flex items-center justify-between gap-2 h-8">
+                                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate(`/creator/${test.created_by}`)}>
+                                        <Avatar className="h-6 w-6"><AvatarImage src={test.creator_avatar}/></Avatar>
+                                        <span className="text-xs font-semibold text-slate-600 truncate max-w-[80px]">{test.creator_name}</span>
+                                    </div>
+                                    <TestCardSectionList sectionIds={testSectionMap[test.id]} allSections={sections} />
+                                </div>
+                            </CardContent>
+                            <CardFooter className="p-4 pt-0 flex items-center gap-2">
+                                <div className="scale-90 origin-left"><TestLikeButton testId={test.id} userId={user?.id} /></div>
+                                <div className="flex-1 flex gap-2">
+                                    {user?.id === test.created_by && (
+                                        <>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setConfiguringTest(test)}><Settings className="h-4 w-4" /></Button>
+                                            <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(`/edit-test/${test.id}`)}><Edit className="h-4 w-4" /></Button>
+                                        </>
+                                    )}
+                                    <Button size="sm" className={`flex-1 h-8 ${openButtonClass}`} onClick={() => navigate(`/test-intro/${test.id}`)}>
+                                        Open <ArrowRight className="ml-1.5 h-3 w-3" />
+                                    </Button>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+
+                {filteredTests.length === 0 && (
+                    <div className="text-center py-20 text-slate-400">No tests found matching your criteria.</div>
+                )}
             </div>
 
             {configuringTest && (
-                <TestSettingsPanel test={configuringTest} onClose={() => setConfiguringTest(null)} onUpdate={loadData} />
+                <TestSettingsPanel
+                    test={configuringTest}
+                    onClose={() => setConfiguringTest(null)}
+                    onUpdate={loadData}
+                    onViewResults={() => { setConfiguringTest(null); navigate('/my-tests'); }}
+                />
             )}
         </div>
     );
